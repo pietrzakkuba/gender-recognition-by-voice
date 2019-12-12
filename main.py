@@ -28,22 +28,25 @@ n_arange = np.arange(len(signal))
 signal1 = np.fft.fft(signal)
 signal1 = abs(signal1) / (0.5 * n)
 freq = [v * float(w / n) for v in n_arange]
-# freq2 = freq[0:int(len(freq) / 2)]
-# signal2 = signal[0:int(len(signal) / 2)]
+freq2 = freq[:int(len(freq) / 2)]
+signal2 = signal1[:int(len(signal1) / 2)]
+ax = fig.add_subplot(121)
+ax.plot(freq2[:int(len(freq2)/50)], signal2[:int(len(freq2)/50)]) # /50 - skrócenie zakresu częstotliwości do narysowania
+
+
     #nie wiem czy tu nie trzeba zrobic:
     #(usuniecie podwojenia
     #wyswietl signal
 # ax = fig.add_subplot(132)
 # stem(freq, ffty, '-*')
 
-signal1 = signal1 * np.kaiser(len(signal1), 100) #dobierz te parametry
-
-hps = copy(signal1)
+# signal2 = signal2 * np.kaiser(len(signal2), 5) #dobierz te parametry
+hps = copy(signal2)
 for i in np.arange(2,6):
-    d = decimate(signal, int(i))
+    d = decimate(signal2, int(i))
     hps[:len(d)] *= d
-ax = fig.add_subplot(111)
-ax.plot(freq, hps)
+ax = fig.add_subplot(122)
+ax.plot(freq2[:int(len(freq2)/50)], hps[:int(len(freq2)/50)])
 plt.show()
 print(freq[np.argmax(hps)])
 # #hps[0:freq[70]] = 0
