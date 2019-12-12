@@ -10,8 +10,9 @@ import numpy as np
 from pylab import copy
 from scipy.signal import decimate
 
-w, signal = read('./test/066_K.wav')
-signal = [s[0] for s in signal] 
+w, signal = read('./test/069_K.wav')
+if signal.shape[1] == 2:
+    signal = [s[0] for s in signal] 
 
 fig = plt.figure(figsize=(15, 6), dpi=80)
 
@@ -45,18 +46,18 @@ hps = copy(signal2)
 for i in np.arange(2,6):
     d = decimate(signal2, int(i))
     hps[:len(d)] *= d
+# hps[0:freq[70]] = 0
 ax = fig.add_subplot(122)
 ax.plot(freq2[:int(len(freq2)/50)], hps[:int(len(freq2)/50)])
 plt.show()
 print(freq[np.argmax(hps)])
-# #hps[0:freq[70]] = 0
 # hps=hps[int((70/44200)*ind)]
 # ax = fig.add_subplot(133)
 # stem(freq, hps)
 # stem(freq2, ffty2, '-*')
 # our_result = freq[np.argmax(hps)]
 # print(our_result)
-# if our_result > 180:
+# if our_result > 170:
 #     print('M')
 # else:
 #     print('K')
