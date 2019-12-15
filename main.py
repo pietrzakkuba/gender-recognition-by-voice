@@ -1,63 +1,88 @@
-# from numpy import *
-# from ipywidgets import *
-# import math as mt
-# import scipy.io.wavfile
-
+import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
-from scipy import size
-import numpy as np
-from pylab import copy
 from scipy.signal import decimate
-
-w, signal = read('./test/069_K.wav')
-if signal.shape[1] == 2:
-    signal = [s[0] for s in signal] 
-
-fig = plt.figure(figsize=(15, 6), dpi=80)
-
-t = size(signal) / int(w)
-time = [i * t / len(signal) for i in range(len(signal))]
-
-# ax.plot(time, signal) #input
+from glob import glob
+from random import seed, choice
 
 
-n = len(signal)
-n_arange = np.arange(len(signal))
+def signal_data(sample):
+    w, signal = read(sample)
+    if(len(signal.shape) != 1):
+        signal = [sig[0] for sig in signal]
+    return w, signal
 
 
-signal1 = np.fft.fft(signal)
-signal1 = abs(signal1) / (0.5 * n)
-freq = [v * float(w / n) for v in n_arange]
-freq2 = freq[:int(len(freq) / 2)]
-signal2 = signal1[:int(len(signal1) / 2)]
-ax = fig.add_subplot(121)
-ax.plot(freq2[:int(len(freq2)/50)], signal2[:int(len(freq2)/50)]) # /50 - skrócenie zakresu częstotliwości do narysowania
+def cut_data(x, y, w = 1, n = 1):
+    return int((x / w) * n), int((y / w) * n)
 
 
-    #nie wiem czy tu nie trzeba zrobic:
-    #(usuniecie podwojenia
-    #wyswietl signal
-# ax = fig.add_subplot(132)
-# stem(freq, ffty, '-*')
+def cut(list, x, y):
+    return list[int(x * 0.001 * len(list)):int(y * 0.001 * len(list))]
 
-# signal2 = signal2 * np.kaiser(len(signal2), 5) #dobierz te parametry
-hps = copy(signal2)
-for i in np.arange(2,6):
-    d = decimate(signal2, int(i))
-    hps[:len(d)] *= d
-# hps[0:freq[70]] = 0
-ax = fig.add_subplot(122)
-ax.plot(freq2[:int(len(freq2)/50)], hps[:int(len(freq2)/50)])
-plt.show()
-print(freq[np.argmax(hps)])
-# hps=hps[int((70/44200)*ind)]
-# ax = fig.add_subplot(133)
-# stem(freq, hps)
-# stem(freq2, ffty2, '-*')
-# our_result = freq[np.argmax(hps)]
-# print(our_result)
-# if our_result > 170:
-#     print('M')
-# else:
-#     print('K')
+
+def get_samples_paths(samples):
+    return glob(samples + '/*')
+
+
+def right_answers(samples):
+    answers = list()
+    for sample in samples:
+        answers.append(sample[-5])
+    return answers
+
+
+def solve(samples, male = 120, female = 220):
+    answers = list()
+    for sample in samples:
+        fundamental_frequency = get_fundemental_frequency(sample)
+        print(fundamental_frequency)
+        if fundamental_frequency < (male + female) / 2:
+            answers.append('M')
+        else:
+            answers.append('K')        
+    return answers
+
+
+def get_fundemental_frequency(sample):
+    try:
+        w, signal = signal_data(sample)
+        n = len(signal)
+        frequency = [i * float(w / n) for i in range(n)]
+
+        signal = np.fft.fft(signal)
+        signal = abs(signal) / (n * 0.5)
+
+        a, b = cut_data(0, 1000, w, n)
+        signal=signal[a:b]
+        frequency=frequency[a:b]
+
+        final_signal=signal
+        for x in range(2, 5):
+            decimated_signal=decimate(signal, x)
+            right_sized_signal=list(decimated_signal) + [0 for zero in range(len(final_signal) - len(decimated_signal))]
+            final_signal=final_signal * np.array(right_sized_signal)
+
+        final_signal = cut(final_signal, 65, 350)
+        frequency = cut(frequency, 65, 350)
+
+        result=frequency[np.argmax(final_signal)]
+        return result
+    except:
+        seed(25)
+        return choice((120.0, 220.0))
+
+
+def main():
+    samples = get_samples_paths('samples')
+    answers = right_answers(samples)
+    solved_answers = solve(samples)
+    print(solved_answers)
+    k = 0
+    for i in range(len(answers)):
+        if answers[i] == solved_answers[i]:
+            k += 1
+    print(100 * k / len(answers))
+
+if __name__ == '__main__':
+    main()
