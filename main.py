@@ -21,6 +21,19 @@ def cut(list, x, y):
     return list[int(x * 0.001 * len(list)):int(y * 0.001 * len(list))]
 
 
+def miesko(signal, freq):
+    final_signal = signal
+    for x in range(2, 5):
+        decimated_signal=decimate(signal, x)
+        right_sized_signal=list(decimated_signal) + [0 for zero in range(len(final_signal) - len(decimated_signal))]
+        final_signal=final_signal * np.array(right_sized_signal)
+
+    final_signal = cut(final_signal, 65, 350)
+    freq = cut(freq, 65, 350)
+    return final_signal, freq
+
+
+
 def get_samples_paths(samples):
     return glob(samples + '/*')
 
@@ -57,16 +70,9 @@ def get_fundemental_frequency(sample):
         signal=signal[a:b]
         frequency=frequency[a:b]
 
-        final_signal=signal
-        for x in range(2, 5):
-            decimated_signal=decimate(signal, x)
-            right_sized_signal=list(decimated_signal) + [0 for zero in range(len(final_signal) - len(decimated_signal))]
-            final_signal=final_signal * np.array(right_sized_signal)
+        signal, frequency = miesko(signal, frequency)
 
-        final_signal = cut(final_signal, 65, 350)
-        frequency = cut(frequency, 65, 350)
-
-        result=frequency[np.argmax(final_signal)]
+        result = frequency[np.argmax(signal)]
         return result
     except:
         seed(25)
