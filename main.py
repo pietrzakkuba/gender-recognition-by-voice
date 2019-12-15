@@ -1,9 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
 from scipy.signal import decimate
 from glob import glob
 from random import seed, choice
+from time import time
 
 
 def signal_data(sample):
@@ -13,8 +13,8 @@ def signal_data(sample):
     return w, signal
 
 
-def cut_data(x, y, w = 1, n = 1):
-    return int((x / w) * n), int((y / w) * n)
+def cut_data(list, x, y, w, n):
+    return list[int((x / w) * n):int((y / w) * n)]
 
 
 def cut(list, x, y):
@@ -66,16 +66,14 @@ def get_fundemental_frequency(sample):
         signal = np.fft.fft(signal)
         signal = abs(signal) / (n * 0.5)
 
-        a, b = cut_data(0, 1000, w, n)
-        signal=signal[a:b]
-        frequency=frequency[a:b]
-
+        signal = cut_data(signal, 0, 1000, w, n)
+        frequency = cut_data(frequency, 0, 1000, w, n)
+    
         signal, frequency = miesko(signal, frequency)
 
-        result = frequency[np.argmax(signal)]
-        return result
+        return frequency[np.argmax(signal)]
     except:
-        seed(25)
+        seed(int(time()))
         return choice((120.0, 220.0))
 
 
