@@ -4,6 +4,12 @@ from scipy.signal import decimate
 from glob import glob
 from random import seed, choice
 from time import time
+from sys import argv
+from warnings import filterwarnings
+
+
+def get_sample(path):
+    return glob('./' + path)[0]
 
 
 def signal_data(sample):
@@ -21,43 +27,27 @@ def cut(list, x, y):
     return list[int(x * 0.001 * len(list)):int(y * 0.001 * len(list))]
 
 
-def miesko(signal, freq):
+def hps(signal, freq):
     final_signal = signal
     for x in range(2, 5):
-        decimated_signal=decimate(signal, x)
-        right_sized_signal=list(decimated_signal) + [0 for zero in range(len(final_signal) - len(decimated_signal))]
-        final_signal=final_signal * np.array(right_sized_signal)
+        decimated_signal = decimate(signal, x)
+        final_signal = final_signal * np.array(list(decimated_signal) + [0 for rest in range(len(final_signal) - len(decimated_signal))])
 
     final_signal = cut(final_signal, 65, 350)
     freq = cut(freq, 65, 350)
     return final_signal, freq
 
 
-
-def get_samples_paths(samples):
-    return glob(samples + '/*')
-
-
-def right_answers(samples):
-    answers = list()
-    for sample in samples:
-        answers.append(sample[-5])
-    return answers
+def solve(sample, male = 120.0, female = 220.0, show_result = False):
+    result = get_fundemental_frequency(sample, male, female)
+    if show_result:
+        print(result)
+    if result < (male + female) / 2:
+        return 'M'
+    return 'F'       
 
 
-def solve(samples, male = 120, female = 220):
-    answers = list()
-    for sample in samples:
-        fundamental_frequency = get_fundemental_frequency(sample)
-        print(fundamental_frequency)
-        if fundamental_frequency < (male + female) / 2:
-            answers.append('M')
-        else:
-            answers.append('K')        
-    return answers
-
-
-def get_fundemental_frequency(sample):
+def get_fundemental_frequency(sample, male, female):
     try:
         w, signal = signal_data(sample)
         n = len(signal)
@@ -69,24 +59,19 @@ def get_fundemental_frequency(sample):
         signal = cut_data(signal, 0, 1000, w, n)
         frequency = cut_data(frequency, 0, 1000, w, n)
     
-        signal, frequency = miesko(signal, frequency)
+        signal, frequency = hps(signal, frequency)
 
         return frequency[np.argmax(signal)]
     except:
         seed(int(time()))
-        return choice((120.0, 220.0))
+        return choice((male, female))
 
 
-def main():
-    samples = get_samples_paths('samples')
-    answers = right_answers(samples)
-    solved_answers = solve(samples)
-    print(solved_answers)
-    k = 0
-    for i in range(len(answers)):
-        if answers[i] == solved_answers[i]:
-            k += 1
-    print(100 * k / len(answers))
+def main(path_to_sample):
+    sample = get_sample(path_to_sample)
+    print(solve(sample, show_result=False)) # toggle printing exact result
+
 
 if __name__ == '__main__':
-    main()
+    filterwarnings('ignore')
+    main(argv[1])
