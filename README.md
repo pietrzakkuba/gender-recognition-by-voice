@@ -2,7 +2,7 @@
 attempt to recognize gender by person's voice
 
 ### Running program:
-  from console: <python> <relative path to .wav file>
+  from console: \<python\> \<relative path to .wav file\>
 
 ### Requirements:
   python 3<br>
